@@ -1,6 +1,6 @@
 {
   "name": "keion-api",
-  "main": "src/worker.js",
+  "main": "js/worker.js",
   "compatibility_date": "2026-11-10",
   "d1_databases": [
     {
