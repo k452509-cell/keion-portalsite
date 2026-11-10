@@ -1,3 +1,40 @@
+<!-- 
+  ========================================================================
+  【システム構成メモ / Cloudflare Pages】
+  ========================================================================
+  
+  [1] フロントエンド (画面表示)
+      - ホスティング: Cloudflare Pages (https://keion.pages.dev)
+      - 技術構成: HTML5, JavaScript (Fetch API), Tailwind CSS (CDN)
+      - 役割: 部員用ポータル画面の描画、幹部ログインUI
+
+  [2] バックエンド (API 処理)
+      - ホスティング: Cloudflare Workers (https://keion-api.mka16.workers.dev)
+      - ディレクトリ: src/worker.js
+      - 役割: CORS制御, 幹部パスワード検証, D1データベースへのCRUD操作
+      - API エンドポイント:
+          - GET  /api/notices         : お知らせ一覧取得（公開）
+          - POST /api/notices         : お知らせ追加（幹部専用）
+          - DELETE /api/notices?id=X  : お知らせ削除（幹部専用）
+          - GET  /api/covers          : カバー曲一覧取得（公開）
+          - POST /api/covers          : カバー曲追加（幹部専用）
+          - PUT  /api/covers          : カバー曲更新（幹部専用）
+          - DELETE /api/covers?id=X   : カバー曲削除（幹部専用）
+          - POST /api/verify-password : 幹部パスワード検証
+
+  [3] データベース
+      - サービス: Cloudflare D1 (SQL Database: keion-db)
+      - テーブル構成:
+          - notices (id, title, content, date)
+          - covers (id, title, artist, guitar_url, bass_url, drums_url)
+
+  [4] セキュリティ・環境変数
+      - 幹部パスワードは Cloudflare Workers の Secret 変数 (ADMIN_PASSWORD) で安全に管理
+      - Preflight (OPTIONS) 通信で 'X-Admin-Password' ヘッダーを許可
+
+  ========================================================================
+-->
+
 <!DOCTYPE html>
 <html lang="ja">
 

@@ -1,5 +1,7 @@
 // Cloudflare Pagesのworker.js
-// パスワードの変更はSECRET_PASSWORDから
+// パスワードの変更はSECRET_PASSWORDから(パスワード入りなのでアップロード注意)
+// git push対象から外す(git rm -r --cached js/)
+
 export default {
   async fetch(request, env) {
     // 1. すべてのレスポンスとPreflight判定で使うCORSヘッダー
