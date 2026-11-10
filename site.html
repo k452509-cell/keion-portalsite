@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 【ブロック1: 基本設定・外部ライブラリ読み込み】 -->
+    <!-- 文字コード設定、スマホ対応レスポンシブ、Tailwind CSS / daisyUI の読み込み -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>軽音楽部 ポータルサイト</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script>tailwind.config = { darkMode: 'media' }</script>
+    <style>
+        @media (prefers-color-scheme: dark) { html { color-scheme: dark; } }
+        @media (prefers-color-scheme: light) { html { color-scheme: light; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-base-200 text-base-content" onload="initApp()">
+
+    <!-- 【ブロック2: ヘッダーエリア】 -->
+    <!-- サイトタイトルと設定ボタンの配置 -->
+    <header class="navbar bg-base-100/80 backdrop-blur-md shadow-sm px-6 sticky top-0 z-30 border-b border-base-200">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl font-extrabold tracking-wider bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                🎸 軽音楽部 Portal
+            </a>
+        </div>
+        <div class="flex-none gap-3">
+            <span id="theme-badge" class="badge badge-ghost text-xs hidden sm:inline-flex">システム連動中</span>
+            <button onclick="openExecAuth()" class="btn btn-sm btn-outline gap-2 font-semibold">
+                ⚙️ 幹部ログイン
+            </button>
+        </div>
+    </header>
+
+    <!-- 【ブロック3: メインコンテンツ（一般部員向け画面）】 -->
+    <!-- メッセージ表示とお知らせ一覧リストの描画領域 -->
+    <main class="container max-w-4xl mx-auto px-4 py-8 flex-grow space-y-6">
+        <div class="hero bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-3xl p-8 border border-base-300 shadow-sm">
+            <div class="hero-content text-center">
+                <div class="max-w-md">
+                    <h1 class="text-3xl font-black tracking-tight mb-2">Welcome to Keion Portal</h1>
+                    <p class="text-sm text-base-content/70">日々の練習成果を発揮しよう。お知らせや各種データをチェック！</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl border border-base-200/80">
+            <div class="card-body">
+                <h2 class="card-title text-primary mb-4 flex items-center gap-2">
+                    📢 部員へのお知らせ・連絡事項
+                </h2>
+                <!-- Cloudflare D1 から取得したお知らせがここに挿入されます -->
+                <div id="member-notice-list" class="space-y-4">
+                    <p class="text-sm text-base-content/50">データを読み込み中...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 【ブロック4: 幹部用管理画面モーダル】 -->
+    <!-- パスワード認証画面およびお知らせの追加・削除フォーム -->
+    <dialog id="exec-modal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box bg-base-100 border border-base-200 shadow-2xl max-w-3xl">
+            <!-- 認証フォーム -->
+            <div id="exec-auth-view" class="text-center py-8 space-y-4">
+                <h3 class="font-bold text-2xl text-accent">幹部認証</h3>
+                <div class="join w-full max-w-sm justify-center pt-2">
+                    <input type="password" id="exec-password" placeholder="パスワードを入力" class="input input-bordered join-item w-full" />
+                    <button onclick="checkPassword()" class="btn btn-accent join-item font-bold">認証</button>
+                </div>
+                <p id="error-msg" class="text-error text-xs hidden">パスワードが正しくありません。</p>
+            </div>
+
+            <!-- 管理ダッシュボード -->
+            <div id="exec-dashboard-view" class="space-y-6" style="display: none;">
+                <div class="flex justify-between items-center border-b border-base-200 pb-3">
+                    <h3 class="font-bold text-lg text-accent">🔑 幹部ダッシュボード</h3>
+                    <button onclick="closeExecModal()" class="btn btn-sm btn-ghost">✕</button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="bg-base-200 p-4 rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm">✍️ お知らせの追加</h4>
+                        <input type="text" id="notice-title" placeholder="タイトル" class="input input-bordered input-sm w-full" />
+                        <textarea id="notice-content" placeholder="詳細内容..." class="textarea textarea-bordered textarea-sm w-full h-20"></textarea>
+                        <button onclick="addNoticeCloudflare()" class="btn btn-accent btn-sm font-bold w-full">お知らせを追加（Cloudflareに保存）</button>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-base-content/60 mb-2">登録済みお知らせ一覧</h4>
+                        <div id="exec-notice-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog"><button class="btn btn-sm">閉じる</button></form>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- 【ブロック5: JavaScript・Cloudflare API通信処理】 -->
+    <!-- フロントエンドと Cloudflare D1 (Workers API) 間のデータ送受信処理 -->
+    <script>
+        const EXEC_PASSWORD = "2026"; // 幹部認証用パスワード
+        
+        // 🔑 作成した Cloudflare Workers の URL をここに貼り付けます
+        const WORKER_URL = "https://keion-api.YOUR-SUBDOMAIN.workers.dev";
+
+        // 初期化処理
+        function initApp() {
+            fetchNotices();
+        }
+
+        // 【機能1】Cloudflare D1 から全お知らせを取得して画面に描画
+        async function fetchNotices() {
+            const memberListEl = document.getElementById('member-notice-list');
+            const execListEl = document.getElementById('exec-notice-list');
+            
+            try {
+                const res = await fetch(`${WORKER_URL}/api/notices`);
+                const notices = await res.json();
+
+                if (!notices || notices.length === 0) {
+                    memberListEl.innerHTML = `<p class="text-base-content/50 text-sm">現在、お知らせはありません。</p>`;
+                    if (execListEl) execListEl.innerHTML = `<p class="text-base-content/50 text-xs">登録されたお知らせはありません。</p>`;
+                    return;
+                }
+
+                // 部員用画面の更新
+                memberListEl.innerHTML = notices.map(n => `
+                    <div class="p-4 bg-base-200/50 rounded-2xl border border-base-200 space-y-1">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-base">${escapeHTML(n.title)}</h3>
+                            <span class="text-xs badge badge-ghost">${escapeHTML(n.date)}</span>
+                        </div>
+                        <p class="text-sm text-base-content/75 whitespace-pre-wrap">${escapeHTML(n.content)}</p>
+                    </div>
+                `).join('');
+
+                // 幹部用画面の更新
+                if (execListEl) {
+                    execListEl.innerHTML = notices.map(n => `
+                        <div class="flex justify-between items-center p-2.5 bg-base-100 rounded-lg border border-base-300 text-sm">
+                            <span class="font-semibold truncate mr-2">${escapeHTML(n.title)}</span>
+                            <button onclick="deleteNoticeCloudflare(${n.id})" class="btn btn-xs btn-outline btn-error">削除</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                memberListEl.innerHTML = `<p class="text-error text-sm">データの読み込みに失敗しました。</p>`;
+            }
+        }
+
+        // 【機能2】Cloudflare D1 へお知らせを追加
+        async function addNoticeCloudflare() {
+            const titleInput = document.getElementById('notice-title');
+            const contentInput = document.getElementById('notice-content');
+
+            if (!titleInput.value || !contentInput.value) {
+                alert("タイトルと内容を入力してください。");
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+
+            await fetch(`${WORKER_URL}/api/notices`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: titleInput.value,
+                    content: contentInput.value,
+                    date: today
+                })
+            });
+
+            titleInput.value = "";
+            contentInput.value = "";
+            fetchNotices(); // 再読み込み
+        }
+
+        // 【機能3】Cloudflare D1 からお知らせを削除
+        async function deleteNoticeCloudflare(id) {
+            if (!confirm("本当に削除しますか？")) return;
+
+            await fetch(`${WORKER_URL}/api/notices?id=${id}`, {
+                method: 'DELETE'
+            });
+
+            fetchNotices(); // 再読み込み
+        }
+
+        // モーダル・認証操作用関数
+        function openExecAuth() { document.getElementById('exec-modal').showModal(); }
+        function closeExecModal() { document.getElementById('exec-modal').close(); }
+        function checkPassword() {
+            const inputPass = document.getElementById('exec-password').value;
+            if (inputPass === EXEC_PASSWORD) {
+                document.getElementById('exec-auth-view').style.display = 'none';
+                document.getElementById('exec-dashboard-view').style.display = 'block';
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+    </script>
+</body>
+</html>
