@@ -1,0 +1,12 @@
+{
+  "name": "keion-api",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-11-10",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "keion-db",
+      "database_id": "ご自身のD1データベースID"
+    }
+  ]
+}
