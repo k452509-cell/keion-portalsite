@@ -246,9 +246,11 @@
                     <button onclick="closeExecModal()" class="btn btn-sm btn-ghost">✕</button>
                 </div>
 
-                <div role="tablist" class="tabs tabs-boxed bg-base-200 p-1">
+                <!-- 3タブ構造に変更 -->
+                <div role="tablist" class="tabs tabs-boxed bg-base-200 p-1 grid-cols-3">
                     <a role="tab" id="exec-tab-notice" class="tab tab-active font-bold text-xs" onclick="switchExecTab('notice')">📢 お知らせ管理</a>
-                    <a role="tab" id="exec-tab-cover" class="tab font-bold text-xs" onclick="switchExecTab('cover')">🎵 カバー曲・URL管理</a>
+                    <a role="tab" id="exec-tab-cover" class="tab font-bold text-xs" onclick="switchExecTab('cover')">🎵 カバー曲管理</a>
+                    <a role="tab" id="exec-tab-sheet" class="tab font-bold text-xs" onclick="switchExecTab('sheet')">📊 フォーム回答</a>
                 </div>
 
                 <!-- A. お知らせ管理セクション -->
@@ -258,7 +260,7 @@
                         <input type="text" id="notice-title" placeholder="タイトル" class="input input-bordered input-sm w-full" />
                         <textarea id="notice-content" placeholder="詳細内容..." class="textarea textarea-bordered textarea-sm w-full h-20"></textarea>
                         <div class="flex gap-2">
-                            <button onclick="saveNotice()" id="save-notice-btn" class="btn btn-accent btn-sm flex-grow font-bold">お知らせを追加</button>
+                            <button type="button" onclick="saveNotice()" id="save-notice-btn" class="btn btn-accent btn-sm flex-grow font-bold">お知らせを追加</button>
                         </div>
                     </div>
                     <div>
@@ -282,8 +284,8 @@
                             <input type="text" id="url-drums" placeholder="🥁 ドラム用 URL" class="input input-bordered input-sm w-full" />
                         </div>
                         <div class="flex gap-2 pt-1">
-                            <button onclick="saveCoverSong()" id="save-cover-btn" class="btn btn-accent btn-sm flex-grow font-bold">カバー曲を追加</button>
-                            <button onclick="cancelCoverEdit()" id="cancel-cover-btn" class="btn btn-ghost btn-sm hidden">キャンセル</button>
+                            <button type="button" onclick="saveCoverSong()" id="save-cover-btn" class="btn btn-accent btn-sm flex-grow font-bold">カバー曲を追加</button>
+                            <button type="button" onclick="cancelCoverEdit()" id="cancel-cover-btn" class="btn btn-ghost btn-sm hidden">キャンセル</button>
                         </div>
                     </div>
                     <div>
@@ -292,10 +294,10 @@
                     </div>
                 </div>
 
-                <!-- スプレッドシート確認枠 -->
-                <div class="space-y-2 pt-2 border-t border-base-200">
-                    <h4 class="font-bold text-xs text-base-content/60">📊 スプレッドシート回答一覧</h4>
-                    <div class="w-full h-60 rounded-box overflow-hidden border border-base-300 bg-base-200">
+                <!-- C. スプレッドシート確認セクション -->
+                <div id="exec-section-sheet" class="space-y-2" style="display: none;">
+                    <h4 class="font-bold text-xs text-base-content/60">📊 Googleスプレッドシート回答一覧</h4>
+                    <div class="w-full h-80 rounded-box overflow-hidden border border-base-300 bg-base-200">
                         <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQXXXXXXXXXXXXX/pubhtml?widget=true&amp;headers=false" class="w-full h-full border-0"></iframe>
                     </div>
                 </div>
@@ -626,17 +628,23 @@
                 document.getElementById('exec-auth-view').style.display = 'none';
                 document.getElementById('exec-dashboard-view').style.display = 'block';
                 document.getElementById('error-msg').classList.add('hidden');
-                renderExecCoverList();
                 renderExecNoticeList();
+                renderExecCoverList();
             }
         }
 
         function switchExecTab(tab) {
             const isNotice = (tab === 'notice');
+            const isCover = (tab === 'cover');
+            const isSheet = (tab === 'sheet');
+
             document.getElementById('exec-section-notice').style.display = isNotice ? 'block' : 'none';
-            document.getElementById('exec-section-cover').style.display = isNotice ? 'none' : 'block';
+            document.getElementById('exec-section-cover').style.display = isCover ? 'block' : 'none';
+            document.getElementById('exec-section-sheet').style.display = isSheet ? 'block' : 'none';
+
             document.getElementById('exec-tab-notice').className = isNotice ? "tab tab-active font-bold text-xs" : "tab font-bold text-xs";
-            document.getElementById('exec-tab-cover').className = isNotice ? "tab font-bold text-xs" : "tab tab-active font-bold text-xs";
+            document.getElementById('exec-tab-cover').className = isCover ? "tab tab-active font-bold text-xs" : "tab font-bold text-xs";
+            document.getElementById('exec-tab-sheet').className = isSheet ? "tab tab-active font-bold text-xs" : "tab font-bold text-xs";
         }
 
         function escapeHTML(str) {
