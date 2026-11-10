@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <!-- 【ブロック1: 基本設定・外部ライブラリ読み込み】 -->
+    <!-- 1: 基本設定・外部ライブラリ読み込み -->
     <!-- 文字コード設定、スマホ対応レスポンシブ、Tailwind CSS / daisyUI の読み込み -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +16,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between bg-base-200 text-base-content" onload="initApp()">
 
-    <!-- 【ブロック2: ヘッダーエリア】 -->
+    <!-- 2: ヘッダーエリア -->
     <!-- サイトタイトルと設定ボタンの配置 -->
     <header class="navbar bg-base-100/80 backdrop-blur-md shadow-sm px-6 sticky top-0 z-30 border-b border-base-200">
         <div class="flex-1">
@@ -32,7 +32,7 @@
         </div>
     </header>
 
-    <!-- 【ブロック3: メインコンテンツ（一般部員向け画面）】 -->
+    <!-- 3: メインコンテンツ（一般部員向け画面） -->
     <!-- メッセージ表示とお知らせ一覧リストの描画領域 -->
     <main class="container max-w-4xl mx-auto px-4 py-8 flex-grow space-y-6">
         <div class="hero bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-3xl p-8 border border-base-300 shadow-sm">
@@ -57,7 +57,7 @@
         </div>
     </main>
 
-    <!-- 【ブロック4: 幹部用管理画面モーダル】 -->
+    <!-- 4: 幹部用管理画面モーダル -->
     <!-- パスワード認証画面およびお知らせの追加・削除フォーム -->
     <dialog id="exec-modal" class="modal modal-bottom sm:modal-middle">
         <div class="modal-box bg-base-100 border border-base-200 shadow-2xl max-w-3xl">
@@ -98,7 +98,7 @@
         </div>
     </dialog>
 
-    <!-- 【ブロック5: JavaScript・Cloudflare API通信処理】 -->
+    <!-- 5: JavaScript・Cloudflare API通信処理 -->
     <!-- フロントエンドと Cloudflare D1 (Workers API) 間のデータ送受信処理 -->
     <script>
         const EXEC_PASSWORD = "2026"; // 幹部認証用パスワード
@@ -111,7 +111,7 @@
             fetchNotices();
         }
 
-        // 【機能1】Cloudflare D1 から全お知らせを取得して画面に描画
+        // 機能1　Cloudflare D1 から全お知らせを取得して画面に描画
         async function fetchNotices() {
             const memberListEl = document.getElementById('member-notice-list');
             const execListEl = document.getElementById('exec-notice-list');
@@ -151,7 +151,7 @@
             }
         }
 
-        // 【機能2】Cloudflare D1 へお知らせを追加
+        // 機能2　Cloudflare D1 へお知らせを追加
         async function addNoticeCloudflare() {
             const titleInput = document.getElementById('notice-title');
             const contentInput = document.getElementById('notice-content');
@@ -178,7 +178,7 @@
             fetchNotices(); // 再読み込み
         }
 
-        // 【機能3】Cloudflare D1 からお知らせを削除
+        // 機能3　Cloudflare D1 からお知らせを削除
         async function deleteNoticeCloudflare(id) {
             if (!confirm("本当に削除しますか？")) return;
 
