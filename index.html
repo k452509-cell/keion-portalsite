@@ -9,7 +9,7 @@
       - 役割: 部員用ポータル画面の描画、幹部ログインUI
 
   [2] バックエンド (API 処理)
-      - ホスティング: Cloudflare Workers (https://keion-api.mka16.workers.dev)
+      - ホスティング: Cloudflare Workers (https://keion-api.k452509.workers.dev/)
       - ディレクトリ: src/worker.js
       - 役割: CORS制御, 幹部パスワード検証, D1データベースへのCRUD操作
       - API エンドポイント:
@@ -410,7 +410,7 @@
     </footer>
 
     <script>
-        const WORKER_URL = "https://keion-api.mka16.workers.dev"; // ← ご自身の Worker URL を確認
+        const WORKER_URL = "https://keion-api.k452509.workers.dev/"; // ← ご自身の Worker URL を確認
         let currentPassword = "";
         let noticesData = [];
         let coversData = [];
